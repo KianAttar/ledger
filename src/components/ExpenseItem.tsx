@@ -13,16 +13,22 @@ const CATEGORY_EMOJI: Record<Expense['category'], string> = {
 interface Props {
   expense: Expense;
   onPress: (expense: Expense) => void;
+  onLongPress: (expense: Expense) => void;
 }
 
-export default function ExpenseItem({ expense, onPress }: Props) {
+export default function ExpenseItem({ expense, onPress, onLongPress }: Props) {
   const date = new Date(expense.date).toLocaleDateString('en-CA', {
     month: 'short',
     day: 'numeric',
   });
 
   return (
-    <TouchableOpacity style={styles.container} onPress={() => onPress(expense)} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={() => onPress(expense)}
+      onLongPress={() => onLongPress(expense)}
+      activeOpacity={0.7}
+    >
       <View style={styles.left}>
         <Text style={styles.emoji}>{CATEGORY_EMOJI[expense.category]}</Text>
         <View>

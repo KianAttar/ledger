@@ -1,21 +1,31 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ExpenseItem from '../components/ExpenseItem';
+import { useExpenseStore } from '../store/useExpenseStore';
 import { Expense } from '../types';
 
-const SEED_DATA: Expense[] = [
-  { id: '1', amount: 24.50, category: 'Food', note: 'Lunch at work', date: '2026-06-04' },
-  { id: '2', amount: 8.75, category: 'Transport', note: 'Bus pass top-up', date: '2026-06-03' },
-  { id: '3', amount: 112.00, category: 'Shopping', note: 'Running shoes', date: '2026-06-02' },
-  { id: '4', amount: 15.00, category: 'Health', note: 'Vitamins', date: '2026-06-01' },
-  { id: '5', amount: 42.00, category: 'Entertainment', note: 'Concert tickets', date: '2026-05-31' },
-  { id: '6', amount: 6.50, category: 'Food', note: 'Coffee', date: '2026-05-30' },
-  { id: '7', amount: 200.00, category: 'Other', note: 'Birthday gift', date: '2026-05-29' },
-];
-
-const total = SEED_DATA.reduce((sum, e) => sum + e.amount, 0);
-
 export default function HomeScreen() {
+  const expenses = useExpenseStore((state) => state.expenses);
+  const deleteExpense = useExpenseStore((state) => state.deleteExpense);
+
+  const now = new Date();
+  const thisMonthExpenses = expenses.filter((e) => {
+    const d = new Date(e.date);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  });
+  const total = thisMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
+
+  const handleLongPress = (expense: Expense) => {
+    Alert.alert(
+      'Delete expense?',
+      `${expense.category} — $${expense.amount.toFixed(2)}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteExpense(expense.id) },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.header}>
@@ -25,12 +35,23 @@ export default function HomeScreen() {
       </View>
 
       <FlatList
-        data={SEED_DATA}
+        data={expenses}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ExpenseItem expense={item} onPress={(e) => console.log('tapped', e.id)} />
+          <ExpenseItem
+            expense={item}
+            onPress={(e) => console.log('tapped', e.id)}
+            onLongPress={handleLongPress}
+          />
         )}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={expenses.length === 0 ? styles.empty : styles.list}
+        ListEmptyComponent={
+          <View style={styles.emptyInner}>
+            <Text style={styles.emptyIcon}>💸</Text>
+            <Text style={styles.emptyText}>No expenses yet</Text>
+            <Text style={styles.emptySub}>Tap Add to log your first one</Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -68,5 +89,28 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingTop: 8,
+  },
+  empty: {
+    flex: 1,
+  },
+  emptyInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 80,
+  },
+  emptyIcon: {
+    fontSize: 48,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginTop: 16,
+  },
+  emptySub: {
+    fontSize: 14,
+    color: '#aaa',
+    marginTop: 6,
   },
 });
