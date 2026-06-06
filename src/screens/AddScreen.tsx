@@ -1,8 +1,11 @@
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
+import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -32,11 +35,58 @@ export default function AddScreen() {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<Category>("Food");
   const [note, setNote] = useState("");
+  const [receiptUri, setReceiptUri] = useState<string | null>(null);
 
   const addExpense = useExpenseStore((state) => state.addExpense);
   const navigation = useNavigation<NavProp>();
 
-  const handleSave = () => {
+  const handlePickReceipt = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission required",
+        "Allow access to your photo library to attach a receipt."
+      );
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [3, 4],
+      quality: 0.7,
+    });
+    if (!result.canceled) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setReceiptUri(result.assets[0].uri);
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission required", "Allow camera access to snap a receipt.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [3, 4],
+      quality: 0.7,
+    });
+    if (!result.canceled) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setReceiptUri(result.assets[0].uri);
+    }
+  };
+
+  const handleReceiptPress = () => {
+    Alert.alert("Add Receipt", undefined, [
+      { text: "Take Photo", onPress: handleTakePhoto },
+      { text: "Choose from Library", onPress: handlePickReceipt },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+
+  const handleSave = async () => {
     const parsed = parseFloat(amount);
     if (!parsed || parsed <= 0) {
       Alert.alert("Invalid amount", "Enter a number greater than zero.");
@@ -47,9 +97,12 @@ export default function AddScreen() {
       category,
       note: note.trim(),
       date: new Date().toISOString(),
+      receiptUri: receiptUri ?? undefined,
     });
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setAmount("");
     setNote("");
+    setReceiptUri(null);
     navigation.navigate("Home");
   };
 
@@ -105,6 +158,18 @@ export default function AddScreen() {
             placeholderTextColor="#ccc"
             returnKeyType="done"
           />
+
+          <Text style={styles.label}>Receipt</Text>
+          <TouchableOpacity style={styles.receiptButton} onPress={handleReceiptPress}>
+            {receiptUri ? (
+              <Image source={{ uri: receiptUri }} style={styles.receiptPreview} />
+            ) : (
+              <View style={styles.receiptPlaceholder}>
+                <Text style={styles.receiptIcon}>📷</Text>
+                <Text style={styles.receiptHint}>Tap to attach a receipt</Text>
+              </View>
+            )}
+          </TouchableOpacity>
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveText}>Save</Text>
@@ -181,6 +246,32 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 14,
     marginTop: 4,
+  },
+  receiptButton: {
+    marginTop: 4,
+    borderRadius: 12,
+    overflow: "hidden",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
+  },
+  receiptPlaceholder: {
+    height: 120,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  receiptIcon: {
+    fontSize: 28,
+  },
+  receiptHint: {
+    fontSize: 14,
+    color: "#aaa",
+  },
+  receiptPreview: {
+    width: "100%",
+    height: 200,
+    resizeMode: "cover",
   },
   saveButton: {
     marginTop: 32,
