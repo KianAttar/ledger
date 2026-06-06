@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Ledger
+# Cache
 
 React Native expense tracker — built to prepare Kian for a Clio mobile developer interview.
 See the parent directory's plan.md for the full phased learning plan.

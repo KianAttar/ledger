@@ -1,6 +1,6 @@
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import ExpenseItem from '../components/ExpenseItem';
+import AnimatedExpenseItem from '../components/AnimatedExpenseItem';
 import { useExpenseStore } from '../store/useExpenseStore';
 import { Expense } from '../types';
 
@@ -29,7 +29,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.header}>
-        <Text style={styles.title}>Ledger</Text>
+        <Text style={styles.title}>Cache</Text>
         <Text style={styles.total}>${total.toFixed(2)}</Text>
         <Text style={styles.totalLabel}>spent this month</Text>
       </View>
@@ -37,9 +37,10 @@ export default function HomeScreen() {
       <FlatList
         data={expenses}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ExpenseItem
+        renderItem={({ item, index }) => (
+          <AnimatedExpenseItem
             expense={item}
+            index={index}
             onPress={(e) => console.log('tapped', e.id)}
             onLongPress={handleLongPress}
           />

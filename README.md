@@ -1,4 +1,4 @@
-# Ledger
+# Cache
 
 A personal expense tracker built with React Native + Expo.
 

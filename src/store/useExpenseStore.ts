@@ -26,7 +26,7 @@ export const useExpenseStore = create<ExpenseState>()(
         })),
     }),
     {
-      name: 'ledger-expenses',
+      name: 'cache-expenses',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )
