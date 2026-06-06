@@ -6,11 +6,16 @@
     "orientation": "portrait",
     "icon": "./assets/logo-no-text.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/logo.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.cache.app"
@@ -24,6 +29,11 @@
     },
     "web": {
       "favicon": "./assets/logo-no-text.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "1bb4e007-d615-4e95-9485-aa4065753916"
+      }
     }
   }
 }
